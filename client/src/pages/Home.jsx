@@ -9,6 +9,8 @@ import Paper from '@mui/material/Paper';
 import { Button, Modal, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Box } from '@mui/system';
+import { useEffect } from 'react';
+import axiosClient from '../axios-client';
 
 const tableDiv = {
     display:'flex',
@@ -41,29 +43,43 @@ const Home = () => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const [open2, setOpen2] = useState(false);
-    const handleOpen2 = () => setOpen2(true);
-    const handleClose2 = () => setOpen2(false);
+    const [products , setProducts] = useState([]);
 
-    const [editModalInfo, setEditModalInfo] = useState({
-        id: "",
+    useEffect(() => {
+
+        axiosClient.get('/products').then(({data}) => {
+            setProducts(data.products)
+        }).catch(err => {
+            console.log(err)
+        })
+
+    },[])
+
+    const [newProduct, setNewProduct] = useState({
         name: "",
-        desc: ""
-      })
+        description: ""
+    })
 
-    const products = [
-        {
-            id: '1',
-            name: 'Baloon',
-            desc: 'very nice baloon'
-        },
-        {
-            id: '2',
-            name: 'Football',
-            desc: 'very nice football'
-        },
+    const handleAddProduct = (e) => {
+        e.preventDefault();
+        axiosClient.post('/products', newProduct)
+            .then(({data}) => {
+                console.log(data)
+                window.location.reload();
+            }).catch(err => {
+                console.log(err)
+            })
+    }
 
-    ]
+    const handleDelete = (id) => {
+        axiosClient.delete(`/products/${id}`)
+            .then(({data}) => {
+                console.log(data)
+                window.location.reload()
+            }).catch(err => {
+                console.log(err)
+            })
+    }
 
   return (
     <div style={tableDiv}>
@@ -86,13 +102,9 @@ const Home = () => {
                     >
                     <TableCell align="center">{item.id}</TableCell>
                     <TableCell align="center">{item.name}</TableCell>
-                    <TableCell align="center">{item.desc}</TableCell>
+                    <TableCell align="center">{item.description}</TableCell>
                     <TableCell align="center">
-                        <Button style={{backgroundColor: "green" ,margin: '5px'}} variant='contained' onClick={()=>{
-                        handleOpen2()
-                        setEditModalInfo(item)
-                        }}>Edit</Button>
-                        <Button style={{backgroundColor: "red" ,margin: '5px'}} variant='contained'>Delete</Button>
+                        <Button onClick={() => handleDelete(item.id)} style={{backgroundColor: "red" ,margin: '5px'}} variant='contained'>Delete</Button>
                     </TableCell>
                     </TableRow>
                 ))}
@@ -110,27 +122,16 @@ const Home = () => {
             <Typography id="modal-modal-title" variant="h6" component="h2">
               Add A New Product
             </Typography>
-            <TextField id="standard-basic" label="Product Name" variant="standard" />
-            <TextField rows={4} id="standard-basic" label="Product Description" variant="standard" />
-            <Button className='addnewproducttypebutton' variant='contained'>Add</Button>
+            <TextField onChange={(e) => {
+                setNewProduct({...newProduct, name: e.target.value})
+            }} id="standard-basic" label="Product Name" variant="standard" />
+            <TextField onChange={(e) => {
+                setNewProduct({...newProduct, description: e.target.value})
+            }}  rows={4} id="standard-basic" label="Product Description" variant="standard" />
+            <Button onClick={handleAddProduct} className='addnewproducttypebutton' variant='contained'>Add</Button>
           </Box>
         </Modal>
 
-        <Modal
-          open={open2}
-          onClose={handleClose2}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={Modalstyle}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Edit {editModalInfo.name}
-            </Typography>
-            <TextField id="standard-basic" label={editModalInfo.name} variant="standard"/>
-            <TextField id="standard-basic" label={editModalInfo.desc} variant="standard" />
-            <Button className='addnewproducttypebutton' variant='contained'>Submit Edit</Button>
-          </Box>
-        </Modal>
     </div>
   )
 }
