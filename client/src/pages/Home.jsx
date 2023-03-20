@@ -65,7 +65,8 @@ const Home = () => {
         axiosClient.post('/products', newProduct)
             .then(({data}) => {
                 console.log(data)
-                window.location.reload();
+                const newProducts=[...products,data];
+                setProducts(newProducts);
             }).catch(err => {
                 console.log(err)
             })
@@ -75,7 +76,8 @@ const Home = () => {
         axiosClient.delete(`/products/${id}`)
             .then(({data}) => {
                 console.log(data)
-                window.location.reload()
+                const newProducts=products.filter((product)=>product.id!==id);
+                setProducts(newProducts);
             }).catch(err => {
                 console.log(err)
             })
